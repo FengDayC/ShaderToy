@@ -246,7 +246,9 @@ vec3 getAlbedo(float m, vec3 p) {
 // --- Probe ---
 
 #define PROBE_RESOLUTION 4
-#define RAY_PER_PROBE 128
+#define RAY_PER_PROBE 256
+#define PROBE_SIZE 16
+#define SHARPNESS 50.0
 
 vec3 GetProbePosition(int index, int resolution) {
     int res2 = resolution * resolution;

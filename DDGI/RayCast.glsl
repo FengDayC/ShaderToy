@@ -1,6 +1,6 @@
 #include "Common.glsl"
 
-vec3 render(vec3 ro, vec3 rd)
+vec3 render(vec3 ro, vec3 rd, out float outDistance)
 {
     // 追踪射线
     vec2 res = raycast(ro, rd);
@@ -21,26 +21,29 @@ vec3 render(vec3 ro, vec3 rd)
         
         col = alb * radiance;
     }
+    outDistance = t;
     return col;
 }
 
 void mainImage(out vec4 fragColor, in vec2 fragCoord) {
-    // 归一化坐标 [-1, 1]
-    vec2 uv = (fragCoord * 2.0 - iResolution.xy) / iResolution.y;
+    bool computeRadiance = fragCoord.x > iResolution.x / 2.0;
+    vec2 coord = vec2(computeRadiance ? fragCoord.x - iResolution.x / 2.0 : fragCoord.x, fragCoord.y);
+    vec2 uv = coord / vec2(iResolution.x / 2.0, iResolution.y / 2.0) * 2.0 - 1.0;
     int totalProbes = PROBE_RESOLUTION * PROBE_RESOLUTION * PROBE_RESOLUTION;
     
-    int probeID = int(fragCoord.y);
-    int RayID = int(fragCoord.x);
+
+    int probeID = int(coord.y);
+    int RayID = int(coord.x);    
     if(probeID >= totalProbes || RayID >= RAY_PER_PROBE) {
         fragColor = vec4(0.0);
         return;
     }
-
+    
     vec3 probePos = GetProbePosition(probeID, PROBE_RESOLUTION);
     mat3 rot = getRandomRotation(vec3(uv, float(iFrame)));
     vec3 rayDir = sphericalFibonacci(float(RayID), float(RAY_PER_PROBE));
+    float distance;
+    vec3 col = render(probePos, rot * rayDir, distance);
 
-    vec3 col = render(probePos, rot * rayDir);
-
-    fragColor = vec4(col, 1.0);
+    fragColor = computeRadiance ? vec4(col, 1.0) : vec4(rayDir, distance);
 }

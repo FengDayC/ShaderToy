@@ -1,4 +1,5 @@
 #include "Common.glsl"
+#iChannel0 "ProbeUpdate.glsl"
 
 vec2 mapProbes(vec3 p, vec2 res) {
     for(int i = 0; i < 64; i++) {
